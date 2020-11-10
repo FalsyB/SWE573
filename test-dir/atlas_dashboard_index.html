@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<!--[if IE 9]>         <html class="ie9" lang="en"> <![endif]-->
+<!--[if gt IE 9]><!--> <html lang="en"> <!--<![endif]-->
+    <head>
+        <meta charset="utf-8">
+
+        <title>Atlas Robotics Dashboard</title>
+
+        <meta name="description" content="Atlas Robotics Dashboard">
+        <meta name="author" content="Tekin Mericli">
+        <meta name="robots" content="noindex, nofollow">
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1.0">
+
+        <!-- Favicons (just the basics for now, check out http://realfavicongenerator.net/ for all available) -->
+        <link rel="shortcut icon" href="assets/img/atlas_robotics_logo_favicon.png">
+        <link rel="icon" type="image/png" href="assets/img/atlas_robotics_logo_favicon.png" sizes="32x32">
+        
+        <!-- Web fonts -->
+        <!--
+        <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:200,300,400,600,700&Open+Sans:300,400,600,700">
+        -->
+
+        <!-- Bootstrap and Ares CSS -->
+        
+        <link type="text/css" rel="stylesheet" href="assets/css/bootstrap.min.css">
+        <link type="text/css" rel="stylesheet" href="assets/css/bootstrap-toggle.min.css">
+        <link type="text/css" rel="stylesheet" href="assets/css/animate.min.css">
+        <link type="text/css" rel="stylesheet" href="assets/css/ares.css">
+        
+        <!-- Scripts -->
+        
+        <script type="text/javascript" src="assets/js/misc/popper.min.js"></script>
+        <script type="text/javascript" src="assets/js/core/jquery.min.js"></script>
+        <script type="text/javascript" src="assets/js/core/bootstrap.min.js"></script>
+        <script type="text/javascript" src="assets/js/core/bootstrap-toggle.min.js"></script>
+        
+        <script type="text/javascript" src="assets/js/joystick/underscore-min.js"></script>
+        <script type="text/javascript" src="assets/js/joystick/backbone-min.js"></script>
+        <script type="text/javascript" src="assets/js/joystick/joystick_view.js"></script>
+        
+        <script src="assets/js/core/jquery.min.js"></script>
+        <script src="assets/js/plugins/jquery.appear.min.js"></script>
+        <script src="assets/js/plugins/jquery.countTo.min.js"></script>
+        <script src="assets/js/plugins/jquery.easypiechart.min.js"></script>
+        <script src="assets/js/ares.js"></script>
+
+        <script type="text/html" id="joystick-view">
+            <canvas id="joystickCanvas" width="<%= squareSize %>" height="<%= squareSize %>" style="width: <%= squareSize %>px; height: <%= squareSize %>px;">
+            </canvas>
+        </script>
+        
+        <script type="text/javascript" src="assets/js/ros/display.js"></script>
+
+		<!-- ROSLIBJS -->
+		<!-- EventEmitter2 is the sole dependency of roslibjs -->
+		<script type="text/javascript" src="assets/js/ros/eventemitter2.js"></script>
+		<!-- Roslibjs handles core ROS functionality in the browser -->
+		<script type="text/javascript" src="assets/js/ros/roslib.js"></script>
+		<!-- MJPEGCANVAS -->
+		<script type="text/javascript" src="assets/js/ros/mjpegcanvas.min.js"></script>
+
+		<!-- ROS2DJS -->
+		<!-- EaselJS is a dependency of ros2djs -->
+		<script type="text/javascript" src="assets/js/ros/easeljs.js"></script>
+		<!-- Ros2djs provides 2D scene support, including mapping and more -->
+		<script type="text/javascript" src="assets/js/ros/ros2d.js"></script>
+
+		<!-- ROS3DJS -->
+		<!-- Three.js is the WebGL rendering library -->
+		<script type="text/javascript" src="assets/js/ros/three.js"></script>
+		<!-- ColladaLoader2 loads collada models of the robot -->
+		<script type="text/javascript" src="assets/js/ros/ColladaLoader2.js"></script>
+		<!-- Ros3djs provides 3D scene support, including mapping and more -->
+		<script type="text/javascript" src="assets/js/ros/ros3d.js"></script>
+
+		<script>
+		function init() {
+		  // ----------------------------------------------------------------------
+		  // Connecting to rosbridge
+		  // ----------------------------------------------------------------------
+
+		  // The Ros object is responsible for connecting to rosbridge.
+		  var ros = new ROSLIB.Ros();
+		  // When a connection is established with rosbridge, a 'connection' event
+		  // is emitted. In the event callback, we print a success message to the
+		  // screen.
+		  ros.on('connection', function() {
+		    // displaySuccess is a convenience function for outputting messages in
+		    // HTML.
+		    displaySuccess('Roslibjs connected to rosbridge.');
+		  });
+		  // Connects to rosbridge.
+		  ros.connect('ws://localhost:9090');
+
+		  // Create the camera viewers.
+		  var viewerCamFR = new MJPEGCANVAS.Viewer({
+		    divID : 'camFR',
+		    host : 'localhost',
+		    width : 160,
+		    height : 120,
+		    topic : '/front/right/image_raw'
+		  });
+
+		  var viewerCamFL = new MJPEGCANVAS.Viewer({
+		    divID : 'camFL',
+		    host : 'localhost',
+		    width : 160,
+		    height : 120,
+		    topic : '/front/left/image_raw'
+		  });
+
+		  var viewerCamRR = new MJPEGCANVAS.Viewer({
+		    divID : 'camRR',
+		    host : 'localhost',
+		    width : 160,
+		    height : 120,
+		    topic : '/rear/right/image_raw'
+		  });
+
+		  var viewerCamRL = new MJPEGCANVAS.Viewer({
+		    divID : 'camRL',
+		    host : 'localhost',
+		    width : 160,
+		    height : 120,
+		    topic : '/rear/left/image_raw'
+		  });
+
+		  // ----------------------------------------------------------------------
+		  // Subscribing to the robot's Pose
+		  // ----------------------------------------------------------------------
+
+		  // The ROSLIB.Topic handles subscribing and publishing a ROS topic. This
+		  // topic interacts with the /robot_pose topic, published by the robot.
+		  var poseTopic = new ROSLIB.Topic({
+		    ros         : ros,
+		    name        : '/amcl_pose',
+		    messageType : 'geometry_msgs/PoseWithCovarianceStamped'
+		  });
+		  // Subscribes to the robot's pose. When rosbridge receives the pose
+		  // message from ROS, it forwards the message to roslibjs, which calls this
+		  // callback.
+		  poseTopic.subscribe(function(posemsg) {
+		    // Formats the pose for outputting.
+		    var now = new Date();
+		    var position = 'x: ' + posemsg.pose.pose.position.x
+		      + ', y: ' + posemsg.pose.pose.position.y
+		      + ', z: 0.0';
+		    var orientation = 'x: ' + posemsg.pose.pose.orientation.x
+		      + ', y: ' + posemsg.pose.pose.orientation.y
+		      + ', z: ' + posemsg.pose.pose.orientation.z
+		      + ', w: ' + posemsg.pose.pose.orientation.w;
+		    // Prepends a row to the "poses" table with the formatted pose.
+		    $('#poses > tbody > tr:first').after('<tr>'
+		      + '<td>' + now.toLocaleTimeString() + '</td>'
+		      + '<td>' + position + '</td>'
+		      + '<td>' + orientation + '</td>');
+		  });
+
+		  // ----------------------------------------------------------------------
+		  // Displaying a map
+		  // ----------------------------------------------------------------------
+
+		  // The ROS2D.Viewer is a 2D scene manager with additional ROS
+		  // functionality.
+		  var viewer2D = new ROS2D.Viewer({
+		    divID : 'twod-map',
+		    width : 400,
+		    height : 300
+		  });
+
+		  // Subscribes to the robot's OccupancyGrid, which is ROS representation of
+		  // the map, and renders the map in the scene.
+		  var gridClient = new ROS2D.OccupancyGridClient({
+		    ros : ros,
+		    rootObject : viewer2D.scene
+		  });
+		  // Scale the canvas to fit to the map
+		  gridClient.on('change', function() {
+		    viewer2D.scaleToDimensions(gridClient.currentGrid.width, gridClient.currentGrid.height);
+		    viewer2D.shift(gridClient.currentGrid.pose.position.x, gridClient.currentGrid.pose.position.y);
+		    displayPoseMarker();
+		  });
+
+		  // ----------------------------------------------------------------------
+		  // Showing the pose on the map
+		  // ----------------------------------------------------------------------
+
+		  function displayPoseMarker() {
+		    // Create a marker representing the robot.
+		    var robotMarker = new ROS2D.NavigationArrow({
+		      size : 12,
+		      strokeSize : 1,
+		      fillColor : createjs.Graphics.getRGB(255, 128, 0, 0.66),
+		      pulse : true
+		    });
+		    robotMarker.visible = false;
+
+		    // Add the marker to the 2D scene.
+		    gridClient.rootObject.addChild(robotMarker);
+		    var initScaleSet = false;
+
+		    // Subscribe to the robot's pose updates.
+		    var poseListener = new ROSLIB.Topic({
+		      ros : ros,
+		      name : '/amcl_pose',
+		      messageType : 'geometry_msgs/PoseWithCovarianceStamped',
+		      throttle_rate : 100
+		    });
+		    poseListener.subscribe(function(posemsg) {
+		      // Orientate the marker based on the robot's pose.
+		      robotMarker.x = posemsg.pose.pose.position.x;
+		      robotMarker.y = -posemsg.pose.pose.position.y;
+		      if (!initScaleSet) {
+		        robotMarker.scaleX = 1.0 / viewer2D.scene.scaleX;
+		        robotMarker.scaleY = 1.0 / viewer2D.scene.scaleY;
+		        initScaleSet = true;
+		      }
+		      robotMarker.rotation = viewer2D.scene.rosQuaternionToGlobalTheta(posemsg.pose.pose.orientation);
+		      robotMarker.visible = true;
+		    });
+		  }
+
+		  // ----------------------------------------------------------------------
+		  // Rendering the robot in 3D
+		  // ----------------------------------------------------------------------
+
+		  // Create the scene manager and view port for the 3D world.
+		  var viewer3D = new ROS3D.Viewer({
+		    divID      : 'threed-map',
+		    width      : 800,
+		    height     : 600,
+		    antialias  : true,
+		    background : '#EEEEEE'
+		  });
+
+		  // Create a TF client that subscribes to the fixed frame.
+		  var tfClient = new ROSLIB.TFClient({
+		    ros          : ros,
+		    angularThres : 0.01,
+		    transThres   : 0.01,
+		    rate         : 10.0
+		  });
+
+		  // Add the URDF model of the robot.
+		  var urdfClient = new ROS3D.UrdfClient({
+		    ros        : ros,
+		    tfClient   : tfClient,
+		    path       : 'http://localhost:8000/',
+		    rootObject : viewer3D.scene
+		  });
+
+		  // ----------------------------------------------------------------------
+		  // Rendering the map in 3D
+		  // ----------------------------------------------------------------------
+
+		  // Add the Occupancy Grid map.
+		  var grid = new ROS3D.OccupancyGridClient({
+		    ros        : ros,
+		    tfClient   : tfClient,
+		    rootObject : viewer3D.scene
+		  });
+		  grid.on('change', function() {
+		    // Change the opacity level.
+		    grid.currentGrid.children[0].material.transparent = true;
+		    grid.currentGrid.children[0].material.opacity = 0.25;
+		    grid.currentGrid.children[0].material.needsUpdate = true;
+		  });
+
+		  // ----------------------------------------------------------------------
+		  // 3D all the things
+		  // ----------------------------------------------------------------------
+
+		  // Load the 3D mesh of the Willow Garage floorplan.
+		  /*
+		  var building = new ROS3D.SceneNode({
+		    tfClient : tfClient,
+		    frameID  : '/map',
+		    object   : new ROS3D.MeshResource({
+		      path     : 'http://resources.robotwebtools.org/models/willow_garage/',
+		      resource : 'willow.dae'
+		    }),
+		    pose : new ROSLIB.Pose({
+		      position : {
+		        x : 18.5,
+		        y : 66.75,
+		        z : 0
+		      },
+		      orientation : {
+		        x : 0,
+		        y : 0,
+		        z : -0.83602597651332,
+		        w : 0.5486898637618064
+		      }
+		    })
+		  });
+		  */
+		  // Add the floorplan mesh to the 3D scene.
+		  //viewer3D.addObject(building);
+		}
+		</script>
+
+        <script>
+            jQuery(function(){
+                // Init page helpers (Appear + CountTo + Easy Pie Chart plugins)
+                Ares.initHelpers(['appear', 'appear-countTo', 'easy-pie-chart']);
+            });
+        </script>
+        
+        
+        <script type="text/javascript">
+            $(document).ready(function(){
+                var joystickView = new JoystickView(250, function(callbackView){
+                    $("#joystickContent").append(callbackView.render().el);
+                    setTimeout(function(){
+                        callbackView.renderSprite();
+                        console.log("test");
+                    }, 0);
+                });
+                joystickView.bind("verticalMove", function(y){
+                    $("#yVal").html(y);
+                });
+                joystickView.bind("horizontalMove", function(x){
+                    $("#xVal").html(x);
+                });
+            });
+        </script>
+        
+    </head>
+    <body onload="init()">
+        <!-- Page Container -->
+        <div id="page-container" class="modern-sf">
+            <!-- Header -->
+            <header id="page-header">
+                <div class="row">
+                    <div class="col-2" align="center">
+                        <h1 class="h3 font-w200" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="100">
+                            <span class="text-crystal"><img src="assets/img/atlas_robotics_logo_favicon_inv.png" height="60"></span>
+                        </h1>
+                    </div>
+                    <div class="col-8" align="center" data-toggle="appear" data-class="animated fadeInDown" data-timeout="100">
+                        <span class="text-white-op h2 ">Atlas Control Panel</span>
+                    </div>
+                    <div class="col-2 h4" align="center" data-toggle="appear" data-class="animated fadeInRight" data-timeout="100">
+                        <div class="text-success font-w300">
+                            <div class="dropdown">
+                              <button class="btn btn-success dropdown-toggle" type="button" id="robotPicker" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                Robot 1
+                                <span class="caret"></span>
+                              </button>
+                              <ul class="dropdown-menu" aria-labelledby="robotPicker">
+                                <li><a href="#">Robot 1</a></li>
+                                <li><a href="#">Robot 2</a></li>
+                                <li><a href="#">Robot 3</a></li>
+                              </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            <!-- END Header -->
+
+            <!-- Main Content -->
+            <main id="page-main">
+                <!-- Columns -->
+                <div class="row">
+                    <!-- Left Column -->
+                    <div class="col-3">
+                        <div class="block">
+                            <div class="block-header" align="center">
+                                <h2 class="block-title" data-toggle="appear" data-class="animated fadeInDown">Robot Status</h2>
+                            </div>
+                            <div class="block-content">
+                                <div class="row items-push">
+                                    <div class="col-4" align="center" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="100">
+                                        <div class="animated infinite pulse">
+                                            <img src="assets/img/status_ok.png" height="25">
+                                        </div>
+                                    </div>
+                                    <div class="col-8" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="400">
+                                        <div class="text-uppercase font-w600 text-white-op">
+                                            Laser
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row items-push">
+                                    <div class="col-4" align="center" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="100">
+                                        <div class="animated infinite pulse">
+                                            <img src="assets/img/status_ok.png" height="25">
+                                        </div>
+                                    </div>
+                                    <div class="col-8" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="400">
+                                        <div class="text-uppercase font-w600 text-white-op">
+                                            Cameras
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row items-push">
+                                    <div class="col-4" align="center" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="100">
+                                        <div class="animated infinite pulse">
+                                            <img src="assets/img/status_ok.png" height="25">
+                                        </div>
+                                    </div>
+                                    <div class="col-8" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="400">
+                                        <div class="text-uppercase font-w600 text-white-op">
+                                            Drive
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row items-push">
+                                    <div class="col-4" align="center" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="100">
+                                        <div class="animated infinite pulse">
+                                            <img src="assets/img/status_ok.png" height="25">
+                                        </div>
+                                    </div>
+                                    <div class="col-8" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="400">
+                                        <div class="text-uppercase font-w600 text-white-op">
+                                            Steering
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row items-push">
+                                    <div class="col-4" align="center" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="100">
+                                        <div class="animated infinite pulse">
+                                            <img src="assets/img/status_ok.png" height="25">
+                                        </div>
+                                    </div>
+                                    <div class="col-8" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="400">
+                                        <div class="text-uppercase font-w600 text-white-op">
+                                            Lift
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row items-push">
+                                    <div class="col-4" align="center" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="100">
+                                        <div class="animated infinite pulse">
+                                            <img src="assets/img/battery_100.png" height="20">
+                                        </div>
+                                    </div>
+                                    <div class="col-8" data-toggle="appear" data-class="animated fadeInLeft" data-timeout="400">
+                                        <div class="text-uppercase font-w600 text-white-op">
+                                            Battery
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Center Column -->
+                    <div class="col-6" align="center">
+                        <div class="row">
+                            <div class="col-3">
+                                <div class="block">
+                                    <div class="block-header" align="center">
+                                        <h2 class="block-title" data-toggle="appear" data-class="animated fadeInDown">Cam FL</h2>
+                                    </div>
+                                    <div class="block-content">
+                                        <div id="camFL"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="block">
+                                    <div class="block-header" align="center">
+                                        <h2 class="block-title" data-toggle="appear" data-class="animated fadeInDown">Cam FR</h2>
+                                    </div>
+                                    <div class="block-content">
+                                        <div id="camFR"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="block">
+                                    <div class="block-header" align="center">
+                                        <h2 class="block-title" data-toggle="appear" data-class="animated fadeInDown">Cam RL</h2>
+                                    </div>
+                                    <div class="block-content">
+                                        <div id="camRL"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-3">
+                                <div class="block" align="center">
+                                    <div class="block-header">
+                                        <h2 class="block-title" data-toggle="appear" data-class="animated fadeInDown">Cam RR</h2>
+                                    </div>
+                                    <div class="block-content">
+                                        <div id="camRR"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="block">
+                                    <div class="block-header">
+                                        <h2 class="block-title" data-toggle="appear" data-class="animated fadeInDown">Robot World View</h2>
+                                    </div>
+                                    <div class="block-content  full-width-tabs">
+                                        <ul class="nav nav-tabs navbar-right">
+                                            <li class="active take-all-space-you-can"><a data-toggle="tab" href="#3dworld">3D World</a></li>&nbsp;&nbsp;&nbsp;
+                                            <li class="take-all-space-you-can"><a data-toggle="tab" href="#2dworld">2D World</a></li>
+                                        </ul>
+
+                                        <div class="tab-content">
+                                            <div id="3dworld" class="tab-pane fade in active">
+                                                <div id="threed-map"></div>
+                                            </div>
+                                            <div id="2dworld" class="tab-pane fade">
+                                                <div id="twod-map"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="row items-push">
+                                    <div class="col-12" align="center" data-toggle="appear" data-class="animated fadeIn" data-timeout="100">
+                                        <button class="btn btn-xl btn-block btn-sf push-10">
+                                            <img src="assets/img/goal_arrow.png" height="25">
+                                            Navigation Goal
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="row items-push">
+                                    <div class="col-12" align="center" data-toggle="appear" data-class="animated fadeIn" data-timeout="100">
+                                        <button class="btn btn-xl btn-block btn-sf push-10">
+                                            <img src="assets/img/map_location.png" height="25">
+                                            Pose Estimate
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Right Column -->
+                    <div class="col-3" align="center">
+                        <div class="block">
+                            <div class="block-header">
+                                <h2 class="block-title" data-toggle="appear" data-class="animated fadeInDown">Stats</h2>
+                            </div>
+                            <div class="block-content">
+                                <div class="row items-push">
+                                    <div class="col-6 visibility-hidden" data-toggle="appear" data-class="animated fadeIn" data-timeout="100">
+                                        <div class="text-uppercase font-w600 text-white-op">
+                                            Autonomous Navigation
+                                        </div>
+                                        <div class="font-s18 text-success" data-toggle="countTo" data-to="55" data-speed="2000"></div> km
+                                    </div>
+                                    <div class="col-6 visibility-hidden" data-toggle="appear" data-class="animated fadeIn" data-timeout="300">
+                                        <div class="text-uppercase font-w600 text-white-op">
+                                            Pallets
+                                            Transported
+                                        </div>
+                                        <div class="font-s18 text-success" data-toggle="countTo" data-to="105" data-speed="2000"></div> units
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="block">
+                            <div class="block-header">
+                                <h2 class="block-title" data-toggle="appear" data-class="animated fadeInDown">Robot Control</h2>
+                            </div>
+                            <div class="block-content">
+                                <div class="row items-push">
+                                    <div class="col-12" data-toggle="appear" data-class="animated fadeInRight" data-timeout="400">
+                                        <div class="text-uppercase font-w600 text-white-op">
+                                            Mode
+                                        </div>
+                                        <input type="checkbox" checked data-toggle="toggle" data-on="Autonomous" data-off="Manual" data-onstyle="success" data-offstyle="warning">
+                                    </div>
+                                </div>
+                                <div class="row items-push">
+                                    <div class="col-12" align="center" data-toggle="appear" data-class="animated fadeInRight" data-timeout="100">
+                                        <div class="animated infinite pulse">
+                                            <button class="btn btn-sf">
+                                                <img src="assets/img/emergency_stop.png" height="175">
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row items-push">
+                                    <div id="joystickContent" class="col-12" align="center" data-toggle="appear" data-class="animated fadeInRight" data-timeout="100"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                </div>
+
+                <!-- Page Footer -->
+                <div class="block-content block-content-full font-s12 text-center visibility-hidden" data-toggle="appear" data-class="animated fadeIn" data-timeout="1000">
+                    2018 &copy; <a class="link-sf" href="https://atlas-robotics.com/">Atlas Robotics</a>
+                </div>
+                <!-- END Page Footer -->
+            </main>
+            <!-- END Main Content -->
+        </div>
+        <!-- END Page Container -->
+
+        
+        
+    </body>
+</html>
