@@ -1,6 +1,6 @@
 ################################################################################
 # @file Dockerfile
-# @author Burak Eruçar <burak@boun.edu.tr>
+# @author Burak Eruçar <burak.erucar@boun.edu.tr>
 # @brief SWE573 base Docker image
 # @date 2020-11-03
 #
@@ -17,7 +17,7 @@ ARG from=ubuntu:18.04
 
 FROM ${from}
 
-LABEL maintainer="Burak Eruçar burak@boun.edu.tr" 
+LABEL maintainer="Burak Eruçar burak.erucar@boun.edu.tr" 
 
 RUN apt-key adv --keyserver keys.gnupg.net --recv-key C8B3A55A6F3EFCDE || sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C8B3A55A6F3EFCDE
 RUN apt-get update && apt-get install -y --no-install-recommends \
