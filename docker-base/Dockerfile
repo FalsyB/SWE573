@@ -69,8 +69,8 @@ ENV NVIDIA_DRIVER_CAPABILITIES \
 # Required for non-glvnd setups.
 ENV LD_LIBRARY_PATH /usr/lib/x86_64-linux-gnu${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
 
-# Atlas user
-ARG CUSTOM_USER=atlas 
+# SWE573 user
+ARG CUSTOM_USER=SWE573 
 ARG CUSTOM_UID=1000
 ENV CUSTOM_UID ${CUSTOM_UID}
 ENV CUSTOM_USER ${CUSTOM_USER}
@@ -82,9 +82,9 @@ ENV HOME /home/$CUSTOM_USER
 WORKDIR ${HOME}
 
 # Add the ssh key for automated jobs
-ADD --chown=atlas:atlas atlas_cicd_key* ${HOME}/.ssh/
-RUN echo "    IdentityFile ~/.ssh/atlas_cicd_key" >> /etc/ssh/ssh_config \
-    && chmod 400 ${HOME}/.ssh/atlas_cicd_key \
+ADD --chown=SWE573:SWE573 SWE573_cicd_key* ${HOME}/.ssh/
+RUN echo "    IdentityFile ~/.ssh/SWE573_cicd_key" >> /etc/ssh/ssh_config \
+    && chmod 400 ${HOME}/.ssh/SWE573_cicd_key \
     && ssh-keyscan -t rsa,dsa bitbucket.org 2>&1 > ~/.ssh/known_hosts
 
 # For CAN and video camera access
