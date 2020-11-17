@@ -17,4 +17,4 @@
 ################################################################################
 FROM=${1:-18.04}
 
-docker build --build-arg from=ubuntu:$FROM -t atlasrobotics/base:$FROM .
+docker build --build-arg from=ubuntu:$FROM -t burakproject/base:$FROM .
