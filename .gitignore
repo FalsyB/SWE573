@@ -1,0 +1,9 @@
+/build
+/devel
+*.pyc
+*.swp
+*~
+.idea/
+cmake-build-debug/
+*.save
+
