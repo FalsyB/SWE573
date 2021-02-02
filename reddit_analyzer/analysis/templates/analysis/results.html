@@ -4,11 +4,14 @@
 {% block content %}
     <div class="container">
       <div class="jumbotron">
-        <h3>Your query was valid , results are saved in your history page.</h3>
-        <h2>Here are your results:</h2>
-        <ol class="list-group">
+        <h3>Found the subreddit!</h3>
+        <h2>The scores are listed below:</h2>
+          <div>These are <span style="vertical-align: -20px;">the results</span></div>
+
+          <ol class="list-group">
           <li class="list-group-item">Your search topic is:{{topic}}</li>
           <li class="list-group-item">There is {{positive}} positive comments</li>
+              <math> class="list-group-item">There is {{positive}} positive comments</math>
           <li class="list-group-item">There is {{negative}} negative comments</li>
           <li class="list-group-item">There is {{neutral}} neutral comments</li>
         </ol>

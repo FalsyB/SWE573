@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <div>This is a reddit sentiment analysis app <span style="vertical-align: -50px;">Please login to continue!</span></div>
+    {% if user.is_authenticated %}
+    <h2>Click analysis to start searching!</h2>
+    {% else %}
+    <h2>Click login to either login or signup and start using our site!</h2>
+    {% endif %}
+{% endblock %}
