@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+    <h1>Welcome to Social Media Analysis Project!</h1>
+    {% if user.is_authenticated %}
+    <h2>Go to Analysis page to make analysis from Reddit API</h2>
+    {% else %}
+    <h2>Please login or signup to continue</h2>
+    {% endif %}
+{% endblock %}

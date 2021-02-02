@@ -1,0 +1,10 @@
+{% extends "analysis/analysis.html" %}
+{% load bootstrap3 %}
+{% block content %}
+<h4>Search a topic!</h4>
+  <form  action="{% url 'analysis:analysis_home' %}" method="post">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+    <input type="submit" class='btn btn-primary btn-large' value="Search">
+  </form>
+{% endblock %}
