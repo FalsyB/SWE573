@@ -17,6 +17,7 @@ class Analysis(models.Model):
     user=models.ForeignKey(User,related_name='analysis',on_delete=models.CASCADE)
     topic=models.CharField(('Please enter a valid subreddit name(e.g. Coronavirus , politics , news'),max_length=300)
     score = models.CharField(('0,0'),max_length=300)
+    title = models.CharField(('ahmet'), max_length = 500)
     analysis_positive=models.IntegerField(blank=False, null=False)
     analysis_negative=models.IntegerField(blank=False,null=False)
     analysis_neutral=models.IntegerField(blank=False,null=False)

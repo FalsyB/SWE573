@@ -6,7 +6,12 @@
     <div class="containers">
       <div class="sew">
           <ol class="list-group">
+          <a href=" " title="This is a list view showing which subreddit you did a search on and the submission raw scores, along with submission titles." style="background-color:#FFFFFF;color:blue;text-decoration:none">?</a>
           <li class="list-group-item" style="color:black;float: right">Your results for {{topic}}</li>
+          <li class="list-group-item" style="color:black;float: right">Engagement results for top submissions are {{score}}</li>
+          <li class="list-group-item" style="color:black;float: right">Titles of top submissions, in descending order:    {{title}}</li>
+
+
               {% if positive > negative and positive > neutral%}
                   <li class="list-group-item"style="color:black;float: right">The general sentiment in this subbredit is slightly positive</li>
               {% elif negative > positive and negative > neutral %}
@@ -20,18 +25,21 @@
       </div>
     </div>
     <style>
+
         .sew {
             clear:left;
-            height:25px;
+            height:250px;
             margin: 40px;  // See below for explanation of this
         }
     </style>
     <div class="sew1">
+        <a href=" " title="This is a pie-chart showing the amount of positive-negative and neutral comments the submissions." style="background-color:#FFFFFF;color:blue;text-decoration:none">?</a>
         <h5 style="color:black;">Pie-Chart of Positive-Negative Comments</h5>
     <div id="container_pie"  style ="width:450px;float:left;">
       <canvas id="pie-chart"></canvas>
 
     </div>
+        <a href=" " title="This is a histogram of submission scores. It shows the submission engagement ratings of selected submissions" style="background-color:#FFFFFF;color:blue;text-decoration:none;float: right">?</a>
         <h5 style="color:black;float:right" >Bar-Chart of Submission Scores</h5>
         <div id="container"  style ="width:450px;float:right">
             <canvas id="bar-chart"></canvas>
@@ -51,7 +59,6 @@
     <div class="sew2">
     <div id="container" >
         <h5 style="color:black;" >Word Cloud generated from most frequently used words</h5>
-
         {% load static %}
         <img src="{% static 'images/wordcloud.png' %}" alt="Word-Cloud not be Displayed!!!!!" width="500" height="500">
     </div>
@@ -70,8 +77,9 @@
 
   <script>
     var score_str = [{{score}}];
+    var b = parseInt([{{score}}]) + "<br>";
+    console.log(typeof (b))
     var scores = [];
-    console.log(score_str);
 
     var config = {
       type: 'pie',
@@ -91,12 +99,12 @@
     new Chart(document.getElementById("bar-chart"), {
         type: 'bar',
         data: {
-            labels: ["Submission #1", "Submission #2", "Submission #3", "Submission#4", "Submission#5"],
+            labels: ["Submission #1-Comments", "Submission #2-Comments", "Submission #3-Comments", "Submission#4-Comments", "Submission#5-Comments"],
             datasets: [
                 {
                     label: "Submission Scores",
                     backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f","#e8c3b9","#c45850"],
-                    data: score_str
+                    data: b
                 }
             ]
         },

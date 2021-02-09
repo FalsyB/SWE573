@@ -49,7 +49,7 @@ class AnalysisView(generic.CreateView,LoginRequiredMixin):
             #for item in reddit.subreddit("test").gilded():
                 #mitem = sum(item)
             try:
-                result_dict,scores=AnalysisDone(top_posts)
+                result_dict,scores,titles=AnalysisDone(top_posts)
                 #result_dict, token_count=AnalysisDone(top_posts)
                 #result_vict=AnalysisTextBlob(top_posts)
 
@@ -68,6 +68,7 @@ class AnalysisView(generic.CreateView,LoginRequiredMixin):
                 score_array_str = [str(i) for i in scores]
                 score_str = ','.join(score_array_str)
                 self.object.score=score_str
+                self.object.title = titles
                 self.object.save()
                 return HttpResponseRedirect("results")
 
@@ -88,6 +89,8 @@ class ResultsView(generic.TemplateView,LoginRequiredMixin):
         context['neutral']=analysis.analysis_neutral
         context['topic']= analysis.topic
         context['score'] = analysis.score
+        context['title'] = analysis.title
+        print(type(analysis.score))
         context['data']= [analysis.analysis_positive, analysis.analysis_negative, analysis.analysis_neutral]
         context['labels']= ['Positive Comments', 'Negative Comments', 'Neutral Comments']
         return context
@@ -102,12 +105,14 @@ class HistoryView(generic.ListView,LoginRequiredMixin):
 
 def AnalysisDone(top_posts):
     scores =[]
+    titles = []
     for submission in top_posts:
         sub_entries_nltk = {'negative': 0, 'positive' : 0, 'neutral' : 0}
         sub_entries_textblob = {'negative': 0, 'positive' : 0, 'neutral' : 0}
         text_blob_sentiment(submission.title, sub_entries_textblob)
         nltk_sentiment(submission.title, sub_entries_nltk)
         scores.append(submission.score)
+        titles.append(submission.title)
         #print(type(sub_entries_nltk))
         submission_comm = reddit.submission(id=submission.id)
 
@@ -145,7 +150,7 @@ def AnalysisDone(top_posts):
     wc.to_file("static/images/wordcloud.png")
     image_colors=ImageColorGenerator(reddit_coloring)
 
-    return sub_entries_nltk,scores
+    return sub_entries_nltk,scores, titles
 
 def AnalysisTextBlob(top_posts):
     for submission in top_posts:
