@@ -11,11 +11,13 @@ https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
 from pathlib import Path,PurePath
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-TEMPLATE_DIR=BASE_DIR.joinpath('templates')
-
+#BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+#TEMPLATE_DIR=BASE_DIR.joinpath('templates')
+TEMPLATE_DIR=os.path.join(BASE_DIR, 'templates/')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
@@ -23,9 +25,9 @@ TEMPLATE_DIR=BASE_DIR.joinpath('templates')
 SECRET_KEY = 'wzf22ll&&4_78@-^26zairpr0bmu92kfl1pb$37(kqb2gtde+e'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['secure-woodland-52945.herokuapp.com', '127.0.0.1', '0.0.0.0']
 
 
 # Application definition
@@ -44,6 +46,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -79,7 +82,7 @@ WSGI_APPLICATION = 'reddit_analyzer.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
@@ -120,8 +123,12 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
-STATIC_URL = '/static/'
-STATICFILES_DIR=[BASE_DIR.joinpath('static')]
-
+STATIC_URL = ('/static/')
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+#STATICFILES_DIRS=[BASE_DIR.joinpath('static')]
+STATICFILES_DIRS = ( os.path.join('static'), )
+STATIC_ROOT=os.path.join(BASE_DIR, 'staticfiles')
+#STATIC_ROOT=os.path.join(BASE_DIR, 'static')
 LOGIN_REDIRECT_URL='home'
 LOGOUT_REDIRECT_URL='home'
+

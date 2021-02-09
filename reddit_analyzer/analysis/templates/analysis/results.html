@@ -1,37 +1,86 @@
 {% extends "analysis/analysis.html" %}
 
 
-{% block content %}
-    <div class="container">
-      <div class="jumbotron">
-        <h3>Found the subreddit!</h3>
-        <h2>The scores are listed below:</h2>
-          <div>These are <span style="vertical-align: -20px;">the results</span></div>
 
+{% block content %}
+    <div class="containers">
+      <div class="sew">
           <ol class="list-group">
-          <li class="list-group-item">Your search topic is:{{topic}}</li>
-          <li class="list-group-item">There is {{positive}} positive comments</li>
-              <math> class="list-group-item">There is {{positive}} positive comments</math>
-          <li class="list-group-item">There is {{negative}} negative comments</li>
-          <li class="list-group-item">There is {{neutral}} neutral comments</li>
+          <li class="list-group-item" style="color:black;float: right">Your results for {{topic}}</li>
+              {% if positive > negative and positive > neutral%}
+                  <li class="list-group-item"style="color:black;float: right">The general sentiment in this subbredit is slightly positive</li>
+              {% elif negative > positive and negative > neutral %}
+                  <li class="list-group-item" style="color:black;float: right">The general sentiment in this subbredit is slightly negative</li>
+              {% elif neutral > positive and neutral > negative %}
+                  <li class="list-group-item" style="color:black;float: right">The general sentiment in this subbredit is indefferent</li>
+
+              {% endif %}
+
         </ol>
       </div>
     </div>
-    <div id="container" style="width: 75%;">
-      <canvas id="results"></canvas>
+    <style>
+        .sew {
+            clear:left;
+            height:25px;
+            margin: 40px;  // See below for explanation of this
+        }
+    </style>
+    <div class="sew1">
+        <h5 style="color:black;">Pie-Chart of Positive-Negative Comments</h5>
+    <div id="container_pie"  style ="width:450px;float:left;">
+      <canvas id="pie-chart"></canvas>
+
     </div>
+        <h5 style="color:black;float:right" >Bar-Chart of Submission Scores</h5>
+        <div id="container"  style ="width:450px;float:right">
+            <canvas id="bar-chart"></canvas>
+        </div>
+    </div>
+    <style>
+        .sew1 {
+            clear:right;
+            height:95px;
+            margin-top:120px;
+            margin-right:1px;
+            margin-bottom:1px;
+            margin-left:70px;
+        }
+    </style>
+
+    <div class="sew2">
+    <div id="container" >
+        <h5 style="color:black;" >Word Cloud generated from most frequently used words</h5>
+
+        {% load static %}
+        <img src="{% static 'images/wordcloud.png' %}" alt="Word-Cloud not be Displayed!!!!!" width="500" height="500">
+    </div>
+    </div>
+    <style>
+        .sew2 {
+            clear:right;
+            height:95px;
+            margin-top:220px;
+            margin-right:1px;
+            margin-bottom:350px;
+            margin-left:270px;
+        }
+    </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
 
   <script>
+    var score_str = [{{score}}];
+    var scores = [];
+    console.log(score_str);
+
     var config = {
       type: 'pie',
       data: {
         datasets: [{
-          data: {{ data|safe }},
+          data: {{ data }},
           backgroundColor: [
-            '#696969', '#808080', '#A9A9A9', '#C0C0C0', '#D3D3D3'
+            '#253ede', '#6eff33', '#951fa7', '#C0C0C0', '#D3D3D3'
           ],
-          label: 'Population'
         }],
         labels: {{ labels|safe }}
       },
@@ -39,10 +88,33 @@
         responsive: true
       }
     };
+    new Chart(document.getElementById("bar-chart"), {
+        type: 'bar',
+        data: {
+            labels: ["Submission #1", "Submission #2", "Submission #3", "Submission#4", "Submission#5"],
+            datasets: [
+                {
+                    label: "Submission Scores",
+                    backgroundColor: ["#3e95cd", "#8e5ea2","#3cba9f","#e8c3b9","#c45850"],
+                    data: score_str
+                }
+            ]
+        },
+        options: {
+            legend: { display: false },
+            title: {
+                display: true,
+                text: 'Submission Scores'
+            }
+        }
+    });
+
 
     window.onload = function() {
       var ctx = document.getElementById('pie-chart').getContext('2d');
+      var ctx1 = document.getElementById('bar-chart').getContext('2d');
       window.myPie = new Chart(ctx, config);
+      window.myBar = new Chart(ctx1,config1);
     };
 
   </script>

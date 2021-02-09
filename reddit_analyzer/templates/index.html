@@ -1,10 +1,58 @@
 {% extends "base.html" %}
 {% load static %}
 {% block content %}
-    <div>This is a reddit sentiment analysis app <span style="vertical-align: -50px;">Please login to continue!</span></div>
-    {% if user.is_authenticated %}
-    <h2>Click analysis to start searching!</h2>
-    {% else %}
-    <h2>Click login to either login or signup and start using our site!</h2>
-    {% endif %}
+    <section class="hero hero-bg d-flex justify-content-center align-items-center">
+        <div class="container">
+            <div class="row">
+
+                <div class="col-lg-6 col-md-10 col-12 d-flex flex-column justify-content-center align-items-center">
+                    <div class="hero-text">
+
+                        <h1 class="text-black-50" data-aos="fade-up">Welcome to SentiReddit!</h1>
+                        {% if user.is_authenticated %}
+                        <h5 class="text-black-50" data-aos="fade-up">You are logged in as {{ user.username }}</h5>
+                        {% else %}
+                        <h5 class="text-black-50" data-aos="fade-up">Please sign-in to start searching!</h5>
+                        {% endif %}
+                        <a href="contact.html" class="custom-btn btn-bg btn mt-3" data-aos="fade-up" data-aos-delay="100">Find the author</a>
+
+                        <strong class="d-block py-3 pl-5 text-white" data-aos="fade-up" data-aos-delay="200"><i class="fa fa-phone mr-2"></i> </strong>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 col-12">
+                    <div class="hero-image" data-aos="fade-up" data-aos-delay="300">
+
+                        <img src="{% static 'images/unnamed.png' %}" style="float: right"  class="img-fluid" alt="working guy">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ABOUT -->
+    <section class="about section-padding pb-0" id="about">
+        <div class="container">
+            <div class="row">
+
+                <div class="col-lg-7 mx-auto col-md-10 col-12">
+                    <div class="about-info">
+
+                        <h2 class="mb-4" data-aos="fade-up">A web app for <strong>Social Media </strong> sentiment analysis</h2>
+
+                        <p class="mb-0" data-aos="fade-up">Sentireddit takes advantage of fast apis to track user sentiment in reddit
+                            <br><br>Sentireddit uses <strong>Reddit api</strong> data to find and assign value to certain submissions within the reddit ecosystem.</p>
+                    </div>
+
+                    <div class="about-image" data-aos="fade-up" data-aos-delay="200">
+
+                        <img src="{% static 'images/giphy.webp' %}" style="color: transparent" class="img-fluid" alt="office">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
 {% endblock %}

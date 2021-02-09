@@ -6,16 +6,14 @@
 {% if user.is_authenticated %}
   {% if h_analysis.count > 0 %}
     {% for analysis in h_analysis %}
-        <ol class="list-group">
+        <ol class="list-group" data-aos="fade-up" data-aos-delay="200">
+          <li class="list-group-item">User:{{user.username}}</li>
           <li class="list-group-item">Search Time:{{analysis.created_at}}</li>
-          <li class="list-group-item">Search Topic:{{analysis.topic}}</li>
-          <li class="list-group-item">Positive Comments:{{analysis.analysis_positive}}</li>
-          <li class="list-group-item">Negative Comments:{{analysis.analysis_negative}}</li>
-          <li class="list-group-item">Neutral Comments:{{analysis.analysis_neutral}}</li>
+          <li class="list-group-item">Searched Subreddit:{{analysis.topic}}</li>
         </ol>
     {% endfor %}
   {% else %}
-    <div class="container">
+    <div class="container" data-aos="fade-up" data-aos-delay="200" >
       <div class="jumbotron">
             <h3>No search record in your database.</h3>
       </div>
